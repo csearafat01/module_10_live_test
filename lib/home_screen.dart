@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:module_10_live_test/style.dart';
+
+import 'item.dart';
 
 
 class ToDoPage extends StatefulWidget {
@@ -12,24 +13,46 @@ class ToDoPage extends StatefulWidget {
 }
 
 class ToDoPageView extends State<ToDoPage> {
-  List toDoList = [];
-  String item = "";
-  toDoInputOnChanged(content){
+
+
+  List<Item> items = [
+    Item(title: "Item 1"),
+    Item(title: "Item 2"),
+    Item(title: "Item 3"),
+    Item(title: "Item 4"),
+    Item(title: "Item 5"),
+  ];
+  Set<Item> selectedItems = <Item>{};
+
+  void toggleItemSelection(Item item) {
     setState(() {
-      item = content;
+      item.isSelected = !item.isSelected;
+      if (item.isSelected) {
+        selectedItems.add(item);
+      } else {
+        selectedItems.remove(item);
+      }
     });
   }
 
-  AddItem(){
-    setState(() {
-      toDoList.add({'item':item});
-    });
-  }
-
-  RemoveItem(index){
-    setState(() {
-      toDoList.removeAt(index);
-    });
+  void showSelectedItemsDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Selected Items"),
+          content: Text("Number of Selected items: ${selectedItems.length}"),
+          actions: [
+            TextButton(
+              child: const Text("Close"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
 
@@ -38,55 +61,26 @@ class ToDoPageView extends State<ToDoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('To-do App'),
+        title: const Text('Selection Screen'),
+        elevation: 4,
       ),
-      body: Container(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          children: [
-            Expanded(
-              flex: 20,
-              child: Column(
-                children: [
-                  Expanded(
-                      flex:60,
-                      child: TextFormField(onChanged:(content){toDoInputOnChanged(content);},decoration: AppInputDecoration('List'),)),
-                  Expanded(
-                      flex: 40,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 8.0),
-                        child: ElevatedButton(
-                          onPressed: () {AddItem();},
-                          style: AppButtonStyle(),
-                          child: const Text('Add'),
-                        ),
-                      ))
-                ],
-              ),
-            ),
-            Expanded(
-              flex: 80,
-              child: ListView.builder(
-                  itemCount: toDoList.length,
-                  itemBuilder: (context, index) {
-                    return Card(
-                        child: SizeBox50(
-                            Row(
-                              children: [
-                                Expanded(
-                                    flex: 80,
-                                    child: Text(toDoList[index]['item'].toString())),
-                                Expanded(
-                                    flex: 20,
-                                    child: TextButton(onPressed: (){RemoveItem(index);},child: Icon(Icons.delete),))
-                              ],
-                            )
-                        )
-                    );
-                  }),
-            )
-          ],
-        ),
+      backgroundColor: Colors.grey.shade200,
+      body: ListView.builder(
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return ListTile(
+            title: Text(item.title),
+            tileColor: item.isSelected ? Colors.blue : null,
+            onTap: () {
+              toggleItemSelection(item);
+            },
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: showSelectedItemsDialog,
+        child: const Icon(Icons.check),
       ),
     );
   }
